@@ -1,0 +1,22 @@
+.BoardRow{
+    margin-left: 20px !important;
+    margin-right: 20px !important;
+    flex-wrap: nowrap !important;
+    /* very hackey way  to go about it */   
+}
+
+.AddListButton{
+    display:inline !important;
+    height: 6.7em !important;
+    
+}
+
+@media screen and (max-width: 600px) {
+    .BoardRow {
+        flex-wrap: wrap !important;
+    }
+    .AddListButton{
+        display:inline-block !important;
+        width: 100% !important;
+    }
+  }

@@ -9,7 +9,7 @@ const addListModal = (props) => {
                 <Input placeholder='Input New List Name' onChange={props.modalInputHandler} />
             </ModalBody>
             <ModalFooter>
-                <Button color="primary" onClick={() => { props.modalInputAddHandler() }}>Do Something</Button>{' '}
+                <Button color="primary" onClick={() => { props.modalInputAddHandler() }}>Add</Button>{' '}
                 <Button color="secondary" onClick={() => { props.toggleModal() }}>Cancel</Button>
             </ModalFooter>
         </Modal>

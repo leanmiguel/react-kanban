@@ -3,6 +3,7 @@ import { Col, Button, Card, CardTitle, Input, DropdownItem, InputGroup, InputGro
 import ListItemModal from '../ListItemModal/ListItemModal';
 
 class ListCard extends React.Component {
+
     state = {
         id: this.props.id,
         title: this.props.title,
@@ -56,14 +57,13 @@ class ListCard extends React.Component {
 
         let listItems = this.state.listItems.map((item) => {
 
-
             return <Button
                 outline
                 color="primary"
-                key={`${item}${Date.now() * Math.random()}`}
+                key={item.id}
                 style={{ marginTop: 5 }}
                 onClick={() => {
-                    this.setState({ currentItem: item });
+                    this.setState({ currentItem: { name: item.name, description: item.description, listItemId: item.id, boardId: this.state.id } });
                     this.toggleModal()
                 }}>
                 {item.name}
@@ -71,7 +71,24 @@ class ListCard extends React.Component {
 
         });
 
+        let currentDescription = undefined;
+        if (this.state.currentItem !== null && this.state.currentItem !== undefined) {
 
+            try {
+
+                let currentItem = this.state.listItems.find((element) => {
+                    return element.id === this.state.currentItem.listItemId;
+                })
+
+                currentDescription = currentItem.description;
+
+            }
+
+            catch (err) {
+
+            }
+
+        }
         return (
             <React.Fragment>
                 <Col sm={{ size: 3 }} style={{ padding: 2 }}>
@@ -85,7 +102,8 @@ class ListCard extends React.Component {
                     </Card>
                 </Col>
 
-                <ListItemModal item={this.state.currentItem} toggleModal={this.toggleModal} isOpen={this.state.modalOpen} modifyListItemHandler={this.props.modifyListItemHandler}></ListItemModal>
+                {/* modal for when a list item is clicked */}
+                <ListItemModal item={this.state.currentItem} toggleModal={this.toggleModal} isOpen={this.state.modalOpen} modifyListItemHandler={this.props.modifyListItemHandler} listItems={this.state.listItems} currentDescription={currentDescription} deleteListItemHandler={this.props.deleteListItemHandler}></ListItemModal>
 
 
             </React.Fragment>
@@ -95,3 +113,4 @@ class ListCard extends React.Component {
 }
 
 export default ListCard;
+
