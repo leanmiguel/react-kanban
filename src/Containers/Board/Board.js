@@ -1,18 +1,28 @@
 import React, { Component } from 'react';
 import { Row, Button, } from 'reactstrap';
-import ListCard from '../Components/ListCard/ListCard';
-import AddListModal from '../Components/AddListModal/AddListModal';
-import classes from './Board.css';
-
+import ListCard from '../../Components/ListCard/ListCard';
+import AddListModal from '../../Components/AddListModal/AddListModal';
+import './Board.css';
 class Board extends Component {
 
-    state = {
+    constructor(props) {
+        super(props);
 
-        name: null,
-        lists: [],
-        modalOpen: false,
-        modalInput: null,
+        let currentLists = [];
+        const boardId = this.props.match.params.boardId;
+        if (JSON.stringify(localStorage.getItem(boardId))) {
+            // console.log(JSON.parse(localStorage.getItem(boardId)));
+            currentLists = JSON.parse(localStorage.getItem(boardId));
+        }
 
+        this.state = ({
+
+            name: (this.props.match.params.boardName),
+            lists: currentLists,
+            modalOpen: false,
+            modalInput: null,
+
+        })
     }
 
     toggleModal = () => {
@@ -27,6 +37,9 @@ class Board extends Component {
     modalInputAddHandler = () => {
         let lists = [...this.state.lists];
         lists.push({ title: this.state.modalInput, listItems: [], id: `${this.state.modalInput}${Date.now() * (Math.floor(Math.random() * 100))}` }); // key is nice and random
+
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        // console.log(lists);
         if (this.state.modalInput) {
             this.setState({ lists, modalInput: null, });
             this.toggleModal();
@@ -63,6 +76,7 @@ class Board extends Component {
         lists[modifyListIndex].listItems.splice(modifyDescriptionIndex, 1);
 
         this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
 
         toggleModal();
     }
@@ -89,6 +103,7 @@ class Board extends Component {
         // change the description with what is currently in the textarea
         lists[modifyListIndex].listItems[modifyDescriptionIndex].description = e.target.value;
 
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
         this.setState({ lists });
 
 
@@ -97,7 +112,7 @@ class Board extends Component {
 
 
     addListItemHandler = (id, input, reset) => {
-        let listItems = [...this.state.lists];
+        let lists = [...this.state.lists];
         //add the new list item to the add list
         let addListIndex = this.state.lists.findIndex((element) => {
 
@@ -107,35 +122,35 @@ class Board extends Component {
 
         //if not empty
         if (input) {
-            listItems[addListIndex].listItems.push({ name: input, description: '', id: `${input}${Date.now() * (Math.floor(Math.random() * 100))}` });
+            lists[addListIndex].listItems.push({ name: input, description: '', id: `${input}${Date.now() * (Math.floor(Math.random() * 100))}` });
             reset();
         }
         else {
             alert('Please add an item');
         }
-        this.setState({ listItems });
+
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        this.setState({ lists });
     }
 
     render() {
-
         //from state, create the lists to render to the dom
         const lists = this.state.lists.map((list) => {
             return <ListCard title={list.title} key={list.id} id={list.id} listItems={list.listItems} addListItemHandler={this.addListItemHandler} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler} />
         })
-
-        console.log(classes);
 
 
         return (
             <div className="App">
 
                 {/* nav bar */}
-                <Row style={{ marginLeft: '17px', marginTop: '5px', marginBottom: '5px' }}>  <Button outline color="link" style={{ marginLeft: '5px' }}>Return</Button>
-                    <h2 style={{ marginLeft: '5px' }}>Board Name</h2>
+                <Row style={{ marginLeft: '5px', marginTop: '5px', marginBottom: '5px' }}>  <Button outline color="link" style={{ marginLeft: '5px' }}
+                    onClick={() => { this.props.history.push('/') }}>Return</Button>
+                    <h2 style={{ marginLeft: '5px' }}>{this.state.name}</h2>
                 </Row>
 
                 {/* Should be a media query for later, should wrap when the screen size is small. */}         {/* update media queries dont work unless i do custom css and let go of react strap */}
-                <Row className='BoardRow' >
+                <Row className='BoardRow'>
 
 
                     {lists}
@@ -154,5 +169,3 @@ class Board extends Component {
 }
 
 export default Board;
-
-//  style={{ marginLeft: '5px', marginRight: '5px', flexWrap: (window.innerWidth > 500 ? 'nowrap' : 'wrap') }}
