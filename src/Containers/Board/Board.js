@@ -10,8 +10,9 @@ class Board extends Component {
 
         let currentLists = [];
         const boardId = this.props.match.params.boardId;
+
+
         if (JSON.stringify(localStorage.getItem(boardId))) {
-            // console.log(JSON.parse(localStorage.getItem(boardId)));
             currentLists = JSON.parse(localStorage.getItem(boardId));
         }
 
@@ -39,7 +40,7 @@ class Board extends Component {
         lists.push({ title: this.state.modalInput, listItems: [], id: `${this.state.modalInput}${Date.now() * (Math.floor(Math.random() * 100))}` }); // key is nice and random
 
         localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
-        // console.log(lists);
+
         if (this.state.modalInput) {
             this.setState({ lists, modalInput: null, });
             this.toggleModal();
@@ -110,7 +111,6 @@ class Board extends Component {
 
     }
 
-
     addListItemHandler = (id, input, reset) => {
         let lists = [...this.state.lists];
         //add the new list item to the add list
@@ -136,7 +136,7 @@ class Board extends Component {
     render() {
         //from state, create the lists to render to the dom
         const lists = this.state.lists.map((list) => {
-            return <ListCard title={list.title} key={list.id} id={list.id} listItems={list.listItems} addListItemHandler={this.addListItemHandler} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler} />
+            return <ListCard title={list.title} key={list.id} id={list.id} listItems={list.listItems} addListItemHandler={this.addListItemHandler} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler} editListModalHandler={this.editListModalHandler} />
         })
 
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Col, Button, Card, CardTitle, Input, DropdownItem, InputGroup, InputGroupAddon } from 'reactstrap';
 import ListItemModal from '../ListItemModal/ListItemModal';
 
+
 class ListCard extends React.Component {
 
     state = {
@@ -10,7 +11,8 @@ class ListCard extends React.Component {
         addItemClicked: false,
         addInput: null,
         listItems: this.props.listItems,
-        modalOpen: false,
+        listItemModalOpen: false,
+        listModalOpen: false,
         currentItem: null,
 
     }
@@ -29,10 +31,15 @@ class ListCard extends React.Component {
         this.setState({ addInput: null, addItemClicked: false });
     }
 
-
-    toggleModal = () => {
-        this.setState({ modalOpen: !this.state.modalOpen });
+    toggleListItemModal = () => {
+        this.setState({ listItemModalOpen: !this.state.listItemModalOpen });
     }
+
+    toggleListModal = () => {
+        this.setState({ listModalOpen: !this.state.listModalOpen });
+    }
+
+
 
 
     render() {
@@ -64,7 +71,7 @@ class ListCard extends React.Component {
                 style={{ marginTop: 5 }}
                 onClick={() => {
                     this.setState({ currentItem: { name: item.name, description: item.description, listItemId: item.id, boardId: this.state.id } });
-                    this.toggleModal()
+                    this.toggleListItemModal()
                 }}>
                 {item.name}
             </Button>;
@@ -93,7 +100,14 @@ class ListCard extends React.Component {
             <React.Fragment>
                 <Col sm={{ size: 3 }} style={{ padding: 2 }}>
                     <Card className="bg-light text-dark" style={{ padding: '5px' }}>
-                        <CardTitle className="text-center">{this.state.title}</CardTitle>
+                        <CardTitle className="text-center">
+                            <a
+                                href="# "
+                                // onClick={() => { this.toggleListModal() }}
+                                style={{ color: 'rgb(25,25,25)', fontWeight: 'bold', fontSize: '25px', paddingBottom: '-5px', wordWrap: 'break-word' }}>
+                                {this.state.title}
+                            </a>
+                        </CardTitle>
                         <DropdownItem divider></DropdownItem>
                         {listItems}
 
@@ -103,8 +117,15 @@ class ListCard extends React.Component {
                 </Col>
 
                 {/* modal for when a list item is clicked */}
-                <ListItemModal item={this.state.currentItem} toggleModal={this.toggleModal} isOpen={this.state.modalOpen} modifyListItemHandler={this.props.modifyListItemHandler} listItems={this.state.listItems} currentDescription={currentDescription} deleteListItemHandler={this.props.deleteListItemHandler}></ListItemModal>
-
+                <ListItemModal
+                    item={this.state.currentItem}
+                    toggleModal={this.toggleListItemModal}
+                    isOpen={this.state.listItemModalOpen}
+                    modifyListItemHandler={this.props.modifyListItemHandler}
+                    listItems={this.state.listItems}
+                    currentDescription={currentDescription}
+                    deleteListItemHandler={this.props.deleteListItemHandler}>
+                </ListItemModal>
 
             </React.Fragment>
         )
