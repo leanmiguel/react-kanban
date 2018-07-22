@@ -1,79 +1,65 @@
 import React from 'react';
 import { Button, Row } from 'reactstrap';
 import BoardCard from '../../Components/BoardCard/BoardCard';
-import AddBoardModal from '../../Components/AddBoardModal/AddBoardModal';
-import BoardModal from '../../Components/BoardModal/BoardModal';
-
+import TrelloModal from '../../Components/TrelloModal/TrelloModal';
 
 
 class Boards extends React.Component {
 
     constructor(props) {
         super(props);
-
         let localStorageBoards = null;
         if (JSON.parse(localStorage.getItem('boards'))) {
             localStorageBoards = JSON.parse(localStorage.getItem('boards'));
         }
-
         this.state = {
             boards: (localStorageBoards ? localStorageBoards : []),
-            addBoardModalOpen: false,
+            addNewBoardModalOpen: false,
             boardModalOpen: false,
-            modalInput: null,
+            newBoardInput: null,
             currentBoard: false,
         }
-
-
     }
 
-    toggleBoardModal = (boardName, boardId) => {
-
-        this.setState({ boardModalOpen: !this.state.boardModalOpen, currentBoard: { name: boardName, id: boardId } });
-
-    }
-    toggleAddBoardModal = () => {
-        this.setState({ addBoardModalOpen: !this.state.addBoardModalOpen });
-    }
-
-    modalInputHandler = (e) => {
-        this.setState({ modalInput: e.target.value });
+    toggleModal = (type) => {
+        if (type === "board") {
+            this.setState({ boardModalOpen: !this.state.boardModalOpen });
+        }
+        if (type === "addNewBoard") {
+            this.setState({ addNewBoardModalOpen: !this.state.addNewBoardModalOpen });
+        }
     }
 
-    getCurrentBoardHandler = () => {
-
-
-        const currentBoardItem = this.state.boards.findIndex((element) => {
-            return element.id === this.state.currentBoard.id;
-        })
-
-        console.log(currentBoardItem);
-        return currentBoardItem;
+    setCurrentBoard = (boardName, boardId) => {
+        this.setState({ currentBoard: { name: boardName, id: boardId } });
     }
-    editBoardNameHandler = (e) => {
 
+    newBoardInputHandler = (e) => {
+        this.setState({ newBoardInput: e.target.value });
+    }
 
+    addNewBoardHandler = () => {
         let boards = [...this.state.boards];
+        boards.push({ name: this.state.newBoardInput, id: keyGenerator(this.state.newBoardInput) });
 
-        const editIndex = boards.findIndex((element) => {
-            return element.id === this.state.currentBoard.id;
-        })
+        if (this.state.newBoardInput) {
+            this.setState({ boards, newBoardInput: null, });
+            this.toggleModal('addNewBoard');
+            saveLocalStorage(boards);
+            localStorageBoardGenerator(boards)
+        }
+        else {
+            this.toggleModal('addNewBoard');
+            alert('Please input a name for your board');
+        }
+    }
 
-        let currentBoardStorage = localStorage.getItem(boards[editIndex].id);
-        let previousBoardId = boards[editIndex].id;
-
-        boards[editIndex].title = e.target.value;
-        boards[editIndex].id = `${e.target.value}${Date.now() * (Math.floor(Math.random() * 100))}`;
-
-        this.setState({ boards, currentBoard: { name: boards[editIndex].title, id: boards[editIndex].id } });
-
-
-        localStorage.setItem('boards', JSON.stringify(boards));
-        localStorage.removeItem(previousBoardId);
-        localStorage.setItem(boards[editIndex].id, currentBoardStorage);
-
-
-
+    editBoardNameHandler = (e) => {
+        const boards = [...this.state.boards];
+        const { currentBoardIndex, currentBoardStorage, currentBoardId } = getCurrentBoardInformation(this.state.boards, this.state.currentBoard);
+        editBoard(boards[currentBoardIndex], e.target.value);       //modify the current board with the input from the modal
+        this.setState({ boards, currentBoard: { name: boards[currentBoardIndex].name, id: boards[currentBoardIndex].id } });
+        saveLocalStorage(boards, currentBoardId, boards[currentBoardIndex].id, currentBoardStorage);
     }
 
     deleteBoardHandler = () => {
@@ -90,38 +76,10 @@ class Boards extends React.Component {
         localStorage.removeItem(this.state.currentBoard.id);
 
     }
-    modalInputAddHandler = () => {
-        let boards = [...this.state.boards];
-        boards.push({ title: this.state.modalInput, id: `${this.state.modalInput}${Date.now() * (Math.floor(Math.random() * 100))}` }); // key is nice and random
 
 
-
-
-        if (this.state.modalInput) {
-            this.setState({ boards, modalInput: null, });
-            this.toggleAddBoardModal();
-            localStorage.setItem('boards', JSON.stringify(boards));
-
-
-            // cycle through the boards and make sure they are available in local storage. if it is found, do nothing
-            for (let board of boards) {
-                if (JSON.parse(localStorage.getItem(board.id))) {
-                    // do nothing
-                } else {
-                    localStorage.setItem(board.id, JSON.stringify([]));
-                }
-            }
-
-        }
-        else {
-            this.toggleAddBoardModal();
-            alert('Please input a name for your board');
-        }
-    }
-
-    enterBoardHandler = (id, title) => {
-        this.props.history.push(`/board/${title}/${id}/`);
-
+    enterBoardHandler = (id, name) => {
+        this.props.history.push(`/board/${name}/${id}/`);
 
         // if there is no local storage set for this particular board in local storage, put an empty list in local storage.
         if (JSON.parse(localStorage.getItem(id))) {
@@ -134,9 +92,10 @@ class Boards extends React.Component {
 
 
     render() {
+
         //render the boards from state
         const boards = this.state.boards.map((board) => {
-            return <BoardCard title={board.title} key={board.id} id={board.id} enterBoardHandler={this.enterBoardHandler} toggleBoardModal={this.toggleBoardModal} />
+            return <BoardCard name={board.name} key={board.id} id={board.id} enterBoardHandler={this.enterBoardHandler} toggleModal={this.toggleModal} setCurrentBoard={this.setCurrentBoard} />
         })
 
 
@@ -149,7 +108,7 @@ class Boards extends React.Component {
 
                     return element.id === this.state.currentBoard.id;
                 })
-                currentBoardName = currentItem.title;
+                currentBoardName = currentItem.name;
                 currentBoardId = currentItem.id;
             }
 
@@ -166,14 +125,15 @@ class Boards extends React.Component {
 
                 {boards}
 
-
                 <Row style={{ marginLeft: '5px', marginRight: '5px', marginTop: '5px' }}>
-                    <Button outline color="primary" block onClick={() => { this.toggleAddBoardModal() }}> Add New Board </Button>
+                    <Button outline color="primary" block onClick={() => { this.toggleModal('addNewBoard') }}> Add New Board </Button>
                 </Row>
 
-                <AddBoardModal isOpen={this.state.addBoardModalOpen} toggleAddBoardModal={this.toggleAddBoardModal} modalInputAddHandler={this.modalInputAddHandler} modalInputHandler={this.modalInputHandler}></AddBoardModal>
+                <TrelloModal type="addNewBoard" isOpen={this.state.addNewBoardModalOpen} toggleModal={this.toggleModal} addNewBoardHandler={this.addNewBoardHandler} newBoardInputHandler={this.newBoardInputHandler} ></TrelloModal>
 
-                <BoardModal isOpen={this.state.boardModalOpen} toggleBoardModal={this.toggleBoardModal} editBoardNameHandler={this.editBoardNameHandler} currentBoardName={currentBoardName} currentBoardId={currentBoardId} deleteBoardHandler={this.deleteBoardHandler}></BoardModal>
+                <TrelloModal type="board" isOpen={this.state.boardModalOpen} toggleModal={this.toggleModal} editBoardNameHandler={this.editBoardNameHandler} currentBoardName={currentBoardName} currentBoardId={currentBoardId} deleteBoardHandler={this.deleteBoardHandler} ></TrelloModal>
+
+
             </React.Fragment>
         )
     }
@@ -182,3 +142,45 @@ class Boards extends React.Component {
 
 export default Boards;
 
+const keyGenerator = (name) => {
+    return `${name}${Date.now() * (Math.floor(Math.random() * 100))}`;
+}
+
+const localStorageBoardGenerator = (boards) => {
+    // cycle through the boards and make sure they are available in local storage. if it is found, do nothing
+    for (let board of boards) {
+        if (JSON.parse(localStorage.getItem(board.id))) {
+            // do nothing
+        } else {
+            localStorage.setItem(board.id, JSON.stringify([]));
+        }
+    }
+}
+
+
+const getCurrentBoardInformation = (boards, currentBoard) => {
+
+    const currentBoardIndex = boards.findIndex((element) => {
+        return element.id === currentBoard.id;
+    })
+
+    const currentBoardId = boards[currentBoardIndex].id;
+    const currentBoardStorage = localStorage.getItem(currentBoardId);
+
+    return { currentBoardIndex, currentBoardStorage, currentBoardId };
+}
+
+const editBoard = (board, newName) => {
+    board.name = newName;
+    board.id = keyGenerator(newName);
+}
+
+const saveLocalStorage = (boards, oldBoardId, newBoardId, newBoardContents) => {
+    localStorage.setItem('boards', JSON.stringify(boards));
+
+    if (oldBoardId !== undefined) {
+        console.log(newBoardContents);
+        localStorage.removeItem(oldBoardId); //delete the previous board and replace it with the new board in local storage
+        localStorage.setItem(newBoardId, newBoardContents);
+    }
+}

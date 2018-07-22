@@ -1,7 +1,6 @@
 import React from 'react';
 import { Col, Button, Card, CardTitle, Input, DropdownItem, InputGroup, InputGroupAddon } from 'reactstrap';
-import ListItemModal from '../ListItemModal/ListItemModal';
-
+import TrelloModal from '../TrelloModal/TrelloModal';
 
 class ListCard extends React.Component {
 
@@ -117,16 +116,15 @@ class ListCard extends React.Component {
                 </Col>
 
                 {/* modal for when a list item is clicked */}
-                <ListItemModal
+
+                <TrelloModal type="listItem"
                     item={this.state.currentItem}
                     toggleModal={this.toggleListItemModal}
                     isOpen={this.state.listItemModalOpen}
                     modifyListItemHandler={this.props.modifyListItemHandler}
                     listItems={this.state.listItems}
                     currentDescription={currentDescription}
-                    deleteListItemHandler={this.props.deleteListItemHandler}>
-                </ListItemModal>
-
+                    deleteListItemHandler={this.props.deleteListItemHandler}> ></TrelloModal>
             </React.Fragment>
         )
     }

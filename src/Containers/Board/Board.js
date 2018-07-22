@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Row, Button, } from 'reactstrap';
 import ListCard from '../../Components/ListCard/ListCard';
-import AddListModal from '../../Components/AddListModal/AddListModal';
+import TrelloModal from '../../Components/TrelloModal/TrelloModal';
+
 import './Board.css';
 class Board extends Component {
 
@@ -11,23 +12,28 @@ class Board extends Component {
         let currentLists = [];
         const boardId = this.props.match.params.boardId;
 
-
         if (JSON.stringify(localStorage.getItem(boardId))) {
             currentLists = JSON.parse(localStorage.getItem(boardId));
         }
 
         this.state = ({
-
             name: (this.props.match.params.boardName),
             lists: currentLists,
-            modalOpen: false,
+            addNewListModalOpen: false,
             modalInput: null,
 
         })
     }
 
-    toggleModal = () => {
-        this.setState({ modalOpen: !this.state.modalOpen });
+    toggleModal = (type) => {
+
+        if (type === "addNewList") {
+            this.setState({ addNewListModalOpen: !this.state.addNewListModalOpen });
+        }
+        if (type === "listItem") {
+            this.setState({ listItemModalOpen: !this.state.listItemModalOpen });
+        }
+
     }
 
 
@@ -43,10 +49,10 @@ class Board extends Component {
 
         if (this.state.modalInput) {
             this.setState({ lists, modalInput: null, });
-            this.toggleModal();
+            this.toggleModal('addNewList');
         }
         else {
-            this.toggleModal();
+            this.toggleModal('addNewList');
             alert('Please input a name for your list');
         }
 
@@ -155,8 +161,10 @@ class Board extends Component {
 
                     {lists}
 
-                    <Button className='AddListButton' outline color="primary" onClick={() => { this.toggleModal() }}> Add New List </Button>
-                    <AddListModal isOpen={this.state.modalOpen} toggleModal={this.toggleModal} modalInputHandler={this.modalInputHandler} modalInputAddHandler={this.modalInputAddHandler} ></AddListModal>
+                    <Button className='AddListButton' outline color="primary" onClick={() => { this.toggleModal('addNewList') }}> Add New List </Button>
+
+
+                    <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} modalInputHandler={this.modalInputHandler} modalInputAddHandler={this.modalInputAddHandler} ></TrelloModal>
 
 
                 </Row>
