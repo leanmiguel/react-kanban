@@ -59,28 +59,23 @@ class Boards extends React.Component {
         const { currentBoardIndex, currentBoardStorage, currentBoardId } = getCurrentBoardInformation(this.state.boards, this.state.currentBoard);
         editBoard(boards[currentBoardIndex], e.target.value);       //modify the current board with the input from the modal
         this.setState({ boards, currentBoard: { name: boards[currentBoardIndex].name, id: boards[currentBoardIndex].id } });
-        saveLocalStorage(boards, currentBoardId, boards[currentBoardIndex].id, currentBoardStorage);
+        saveLocalStorage(boards, undefined, currentBoardId, boards[currentBoardIndex].id, currentBoardStorage);
     }
 
     deleteBoardHandler = () => {
         let boards = [...this.state.boards];
-
+        const deletedBoardId = this.state.currentBoard.id;
         const deleteIndex = boards.findIndex((element) => {
             return element.id = this.state.currentBoard.id;
         })
-
         boards.splice(deleteIndex, 1);
-
         this.setState({ boards, boardModalOpen: !this.state.boardModalOpen });
-        localStorage.setItem('boards', JSON.stringify(boards));
-        localStorage.removeItem(this.state.currentBoard.id);
-
+        saveLocalStorage(boards, deletedBoardId);
     }
 
 
     enterBoardHandler = (id, name) => {
         this.props.history.push(`/board/${name}/${id}/`);
-
         // if there is no local storage set for this particular board in local storage, put an empty list in local storage.
         if (JSON.parse(localStorage.getItem(id))) {
             // do nothing
@@ -98,25 +93,8 @@ class Boards extends React.Component {
             return <BoardCard name={board.name} key={board.id} id={board.id} enterBoardHandler={this.enterBoardHandler} toggleModal={this.toggleModal} setCurrentBoard={this.setCurrentBoard} />
         })
 
+        const { currentBoardName, currentBoardId } = getCurrentBoardInformation(this.state.boards, this.state.currentBoard);
 
-        let currentBoardName = "";
-        let currentBoardId = "";
-        if (this.state.currentBoard) {
-            try {
-
-                let currentItem = this.state.boards.find((element) => {
-
-                    return element.id === this.state.currentBoard.id;
-                })
-                currentBoardName = currentItem.name;
-                currentBoardId = currentItem.id;
-            }
-
-            catch (err) {
-
-            }
-
-        }
         return (
 
             <React.Fragment>
@@ -157,17 +135,28 @@ const localStorageBoardGenerator = (boards) => {
     }
 }
 
-
 const getCurrentBoardInformation = (boards, currentBoard) => {
 
-    const currentBoardIndex = boards.findIndex((element) => {
-        return element.id === currentBoard.id;
-    })
+    if (currentBoard) {
+        try {
 
-    const currentBoardId = boards[currentBoardIndex].id;
-    const currentBoardStorage = localStorage.getItem(currentBoardId);
+            const currentBoardIndex = boards.findIndex((element) => {
+                return element.id === currentBoard.id;
+            })
 
-    return { currentBoardIndex, currentBoardStorage, currentBoardId };
+            const currentBoardName = boards[currentBoardIndex].name;
+            const currentBoardId = boards[currentBoardIndex].id;
+            const currentBoardStorage = localStorage.getItem(currentBoardId);
+            return { currentBoardName, currentBoardIndex, currentBoardStorage, currentBoardId };
+
+        }
+        catch (e) {
+
+        }
+    }
+
+    return { currentBoardName: '', currentBoardId: '' };
+
 }
 
 const editBoard = (board, newName) => {
@@ -175,12 +164,16 @@ const editBoard = (board, newName) => {
     board.id = keyGenerator(newName);
 }
 
-const saveLocalStorage = (boards, oldBoardId, newBoardId, newBoardContents) => {
+const saveLocalStorage = (boards, deleteBoardId, oldBoardId, newBoardId, newBoardContents) => {
     localStorage.setItem('boards', JSON.stringify(boards));
 
+    if (deleteBoardId !== undefined) {
+
+        localStorage.removeItem(deleteBoardId);
+    }
     if (oldBoardId !== undefined) {
-        console.log(newBoardContents);
         localStorage.removeItem(oldBoardId); //delete the previous board and replace it with the new board in local storage
         localStorage.setItem(newBoardId, newBoardContents);
     }
 }
+
