@@ -1,17 +1,20 @@
 import React, { Component } from 'react';
 import { Row, Button, } from 'reactstrap';
 import ListCard from '../../Components/ListCard/ListCard';
+import NewListCard from '../../Components/ListCard/NewListCard';
 import TrelloModal from '../../Components/TrelloModal/TrelloModal';
 
 import './Board.css';
 class Board extends Component {
 
+
     constructor(props) {
         super(props);
 
-        let currentLists = [];
         const boardId = this.props.match.params.boardId;
 
+        // if there is currently an item in local storage retrieve it, if not set local storage.
+        let currentLists = [];
         if (JSON.stringify(localStorage.getItem(boardId))) {
             currentLists = JSON.parse(localStorage.getItem(boardId));
         }
@@ -20,7 +23,14 @@ class Board extends Component {
             name: (this.props.match.params.boardName),
             lists: currentLists,
             addNewListModalOpen: false,
-            modalInput: null,
+            addNewListInput: null,
+
+            listModalOpen: false,
+            listItemModalOpen: false,
+            addNewListItemHandler: null,
+            currentItem: null,
+
+
 
         })
     }
@@ -36,27 +46,24 @@ class Board extends Component {
 
     }
 
-
-    modalInputHandler = (e) => {
-        this.setState({ modalInput: e.target.value });
+    addNewListInputHandler = (e) => {
+        this.setState({ addNewListInput: e.target.value });
     }
 
-    modalInputAddHandler = () => {
+    addNewListHandler = () => {
         let lists = [...this.state.lists];
-        lists.push({ title: this.state.modalInput, listItems: [], id: `${this.state.modalInput}${Date.now() * (Math.floor(Math.random() * 100))}` }); // key is nice and random
+        lists.push({ name: this.state.addNewListInput, listItems: [], id: keyGenerator(this.state.addNewListInput), listItemFormOn: false, newListItemInput: null });
 
         localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
 
-        if (this.state.modalInput) {
-            this.setState({ lists, modalInput: null, });
+        if (this.state.addNewListInput) {
+            this.setState({ lists, addNewListInput: null, });
             this.toggleModal('addNewList');
         }
         else {
             this.toggleModal('addNewList');
             alert('Please input a name for your list');
         }
-
-
     }
 
 
@@ -112,9 +119,6 @@ class Board extends Component {
 
         localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
         this.setState({ lists });
-
-
-
     }
 
     addListItemHandler = (id, input, reset) => {
@@ -139,10 +143,69 @@ class Board extends Component {
         this.setState({ lists });
     }
 
+
+    /// new stuff
+
+
+    newListItemInputHandler = (e, listId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        matchedList.newListItemInput = e.target.value;
+        this.setState({ lists });
+    }
+
+    addNewListItemHandler = (listId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        matchedList.listItems.push({ name: matchedList.newListItemInput, id: keyGenerator(matchedList.newListItemInput) });
+        matchedList.listItemFormOn = false;
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+
+    }
+
+    toggleListItemForm = (listId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        matchedList.listItemFormOn = true;
+
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+
+    }
+
+
+
     render() {
-        //from state, create the lists to render to the dom
+
+
+
         const lists = this.state.lists.map((list) => {
-            return <ListCard title={list.title} key={list.id} id={list.id} listItems={list.listItems} addListItemHandler={this.addListItemHandler} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler} editListModalHandler={this.editListModalHandler} />
+
+            return <NewListCard
+                name={list.name}
+                key={list.id}
+                id={list.id}
+                items={list.listItems}
+                listItemFormOn={list.listItemFormOn}
+                toggleListItemForm={this.toggleListItemForm}
+                newListItemInputHandler={this.newListItemInputHandler}
+                addNewListItemHandler={this.addNewListItemHandler} />
         })
 
 
@@ -155,20 +218,21 @@ class Board extends Component {
                     <h2 style={{ marginLeft: '5px' }}>{this.state.name}</h2>
                 </Row>
 
-                {/* Should be a media query for later, should wrap when the screen size is small. */}         {/* update media queries dont work unless i do custom css and let go of react strap */}
                 <Row className='BoardRow'>
-
 
                     {lists}
 
                     <Button className='AddListButton' outline color="primary" onClick={() => { this.toggleModal('addNewList') }}> Add New List </Button>
 
 
-                    <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} modalInputHandler={this.modalInputHandler} modalInputAddHandler={this.modalInputAddHandler} ></TrelloModal>
 
 
                 </Row>
 
+                <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} addNewListInputHandler={this.addNewListInputHandler} addNewListHandler={this.addNewListHandler} ></TrelloModal>
+
+                <Button onClick={() => { this.setState({ listItemModalOpen: !this.state.listItemModalOpen }) }}>test list item modal</Button>
+                <TrelloModal type="listItem" isOpen={this.state.listItemModalOpen}></TrelloModal>
 
 
             </div>
@@ -177,3 +241,7 @@ class Board extends Component {
 }
 
 export default Board;
+
+const keyGenerator = (name) => {
+    return `${name}${Date.now() * (Math.floor(Math.random() * 100))}`;
+}

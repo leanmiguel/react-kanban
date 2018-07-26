@@ -25,10 +25,10 @@ const TrelloModal = (props) => {
             <Modal isOpen={props.isOpen} toggle={() => { props.toggleModal(props.type) }}>
                 <ModalHeader toggle={() => { props.toggleModal(props.type) }}>New List</ModalHeader>
                 <ModalBody>
-                    <Input placeholder='Input New List Name' onChange={props.modalInputHandler} />
+                    <Input placeholder='Input New List Name' onChange={props.addNewListInputHandler} />
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="primary" onClick={() => { props.modalInputAddHandler() }}>Add</Button>{' '}
+                    <Button color="primary" onClick={() => { props.addNewListHandler() }}>Add</Button>{' '}
                     <Button color="secondary" onClick={() => { props.toggleModal(props.type) }}>Cancel</Button>
                 </ModalFooter>
             </Modal>

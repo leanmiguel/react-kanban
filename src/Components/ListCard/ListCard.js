@@ -6,7 +6,7 @@ class ListCard extends React.Component {
 
     state = {
         id: this.props.id,
-        title: this.props.title,
+        name: this.props.name,
         addItemClicked: false,
         addInput: null,
         listItems: this.props.listItems,
@@ -104,7 +104,7 @@ class ListCard extends React.Component {
                                 href="# "
                                 // onClick={() => { this.toggleListModal() }}
                                 style={{ color: 'rgb(25,25,25)', fontWeight: 'bold', fontSize: '25px', paddingBottom: '-5px', wordWrap: 'break-word' }}>
-                                {this.state.title}
+                                {this.state.name}
                             </a>
                         </CardTitle>
                         <DropdownItem divider></DropdownItem>
