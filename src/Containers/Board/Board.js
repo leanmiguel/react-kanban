@@ -6,12 +6,14 @@ import TrelloModal from '../../Components/TrelloModal/TrelloModal';
 import './Board.css';
 class Board extends Component {
 
+
     constructor(props) {
         super(props);
 
-        let currentLists = [];
         const boardId = this.props.match.params.boardId;
 
+        // if there is currently an item in local storage retrieve it, if not set local storage.
+        let currentLists = [];
         if (JSON.stringify(localStorage.getItem(boardId))) {
             currentLists = JSON.parse(localStorage.getItem(boardId));
         }
@@ -20,129 +22,162 @@ class Board extends Component {
             name: (this.props.match.params.boardName),
             lists: currentLists,
             addNewListModalOpen: false,
-            modalInput: null,
+            addNewListInput: null,
 
+            listModalOpen: false,       //modal used for editing the list modal
+            listItemModalOpen: false,   // modal used for editing a list item, which contains the description.
+            currentItem: null
         })
     }
 
     toggleModal = (type) => {
-
         if (type === "addNewList") {
             this.setState({ addNewListModalOpen: !this.state.addNewListModalOpen });
         }
         if (type === "listItem") {
             this.setState({ listItemModalOpen: !this.state.listItemModalOpen });
         }
-
     }
 
-
-    modalInputHandler = (e) => {
-        this.setState({ modalInput: e.target.value });
+    addNewListInputHandler = (e) => {
+        this.setState({ addNewListInput: e.target.value });
     }
 
-    modalInputAddHandler = () => {
+    addNewListHandler = () => {
         let lists = [...this.state.lists];
-        lists.push({ title: this.state.modalInput, listItems: [], id: `${this.state.modalInput}${Date.now() * (Math.floor(Math.random() * 100))}` }); // key is nice and random
+        lists.push({ name: this.state.addNewListInput, listItems: [], id: keyGenerator(this.state.addNewListInput), listItemFormOn: false, newListItemInput: null, });
 
         localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
 
-        if (this.state.modalInput) {
-            this.setState({ lists, modalInput: null, });
+        if (this.state.addNewListInput) {
+            this.setState({ lists, addNewListInput: null, });
             this.toggleModal('addNewList');
         }
         else {
             this.toggleModal('addNewList');
             alert('Please input a name for your list');
         }
+    }
 
+    /// List Item stuff
+
+    newListItemInputHandler = (e, listId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        matchedList.newListItemInput = e.target.value;
+        this.setState({ lists });
+    }
+
+    addNewListItemHandler = (listId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        matchedList.listItems.push({ name: matchedList.newListItemInput, description: '', id: keyGenerator(matchedList.newListItemInput) });
+        matchedList.listItemFormOn = false;
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
 
     }
 
+    toggleListItemForm = (listId) => {
 
-    deleteListItemHandler = (currentItem, toggleModal) => {
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        matchedList.listItemFormOn = !matchedList.listItemFormOn; //invert the state
+
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+
+    }
+
+    setCurrentItem = (listId, listItemId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        const matchedListItem = matchedList.listItems.find((item) => {
+            return item.id === listItemId;
+        })
+
+        this.setState({ currentItem: { listId: listId, listItem: matchedListItem } });
+
+    }
+
+    modifyListItemHandler = (e, listId, listItemId) => {
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        const matchedListItem = matchedList.listItems.find((item) => {
+            return item.id === listItemId;
+        })
+
+        matchedListItem.description = e.target.value;
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+    }
+
+
+    deleteListItemHandler = (listId, listItemId) => {
+
 
         // copy the current state of lists for immutability
         let lists = [...this.state.lists];
 
-        // find the list which matches with the current Item
-        let modifyListIndex = this.state.lists.findIndex((element) => {
-
-            return element.id === currentItem.boardId;
-
-        });
-
-        // find the current entry which matches with the current Item
-        let modifyDescriptionIndex = lists[modifyListIndex].listItems.findIndex((element) => {
-            return element.id === currentItem.listItemId;
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
         })
 
-
-        // remove it
-
-        lists[modifyListIndex].listItems.splice(modifyDescriptionIndex, 1);
-
-        this.setState({ lists });
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
-
-        toggleModal();
-    }
-
-    modifyListItemHandler = (e, currentItem) => {
-
-        let lists = [...this.state.lists];
-
-
-        // we can change to this to a function there are multiple calls of this.
-        // find the list which matches with the current Item
-        let modifyListIndex = this.state.lists.findIndex((element) => {
-
-            return element.id === currentItem.boardId;
-
-        });
-
-        // find the current entry which matches with the current Item
-        let modifyDescriptionIndex = lists[modifyListIndex].listItems.findIndex((element) => {
-            return element.id === currentItem.listItemId;
+        const matchedListItemIndex = matchedList.listItems.findIndex((item) => {
+            return item.id === listItemId;
         })
 
-
-        // change the description with what is currently in the textarea
-        lists[modifyListIndex].listItems[modifyDescriptionIndex].description = e.target.value;
-
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        matchedList.listItems.splice(matchedListItemIndex, 1);
         this.setState({ lists });
-
-
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        this.toggleModal('listItem')
 
     }
 
-    addListItemHandler = (id, input, reset) => {
-        let lists = [...this.state.lists];
-        //add the new list item to the add list
-        let addListIndex = this.state.lists.findIndex((element) => {
 
-            return element.id === id;
-
-        });
-
-        //if not empty
-        if (input) {
-            lists[addListIndex].listItems.push({ name: input, description: '', id: `${input}${Date.now() * (Math.floor(Math.random() * 100))}` });
-            reset();
-        }
-        else {
-            alert('Please add an item');
-        }
-
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
-        this.setState({ lists });
-    }
 
     render() {
-        //from state, create the lists to render to the dom
+
         const lists = this.state.lists.map((list) => {
-            return <ListCard title={list.title} key={list.id} id={list.id} listItems={list.listItems} addListItemHandler={this.addListItemHandler} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler} editListModalHandler={this.editListModalHandler} />
+
+            return <ListCard
+                name={list.name}
+                key={list.id}
+                id={list.id}
+                items={list.listItems}
+                listItemFormOn={list.listItemFormOn}
+                toggleListItemForm={this.toggleListItemForm}
+                newListItemInputHandler={this.newListItemInputHandler}
+                addNewListItemHandler={this.addNewListItemHandler}
+                modifyListItemHandler={this.modifyListItemHandler}
+                setCurrentItem={this.setCurrentItem}
+                toggleListItemModal={this.toggleModal}
+            />
+
+
         })
 
 
@@ -155,20 +190,20 @@ class Board extends Component {
                     <h2 style={{ marginLeft: '5px' }}>{this.state.name}</h2>
                 </Row>
 
-                {/* Should be a media query for later, should wrap when the screen size is small. */}         {/* update media queries dont work unless i do custom css and let go of react strap */}
                 <Row className='BoardRow'>
-
 
                     {lists}
 
                     <Button className='AddListButton' outline color="primary" onClick={() => { this.toggleModal('addNewList') }}> Add New List </Button>
 
 
-                    <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} modalInputHandler={this.modalInputHandler} modalInputAddHandler={this.modalInputAddHandler} ></TrelloModal>
 
 
                 </Row>
 
+                <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} addNewListInputHandler={this.addNewListInputHandler} addNewListHandler={this.addNewListHandler} ></TrelloModal>
+
+                <TrelloModal type="listItem" isOpen={this.state.listItemModalOpen} currentItem={this.state.currentItem} toggleModal={this.toggleModal} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler}></TrelloModal>
 
 
             </div>
@@ -177,3 +212,7 @@ class Board extends Component {
 }
 
 export default Board;
+
+const keyGenerator = (name) => {
+    return `${name}${Date.now() * (Math.floor(Math.random() * 100))}`;
+}
