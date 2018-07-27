@@ -26,7 +26,8 @@ class Board extends Component {
 
             listModalOpen: false,       //modal used for editing the list modal
             listItemModalOpen: false,   // modal used for editing a list item, which contains the description.
-            currentItem: null
+            currentItem: null,
+            listItemNameToggled: false,
         })
     }
 
@@ -167,6 +168,29 @@ class Board extends Component {
 
     }
 
+    editListItemNameHandler = (e, listId, listItemId) => {
+
+        // copy the current state of lists for immutability
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        const matchedListItem = matchedList.listItems.find((item) => {
+            return item.id === listItemId;
+        })
+
+        matchedListItem.name = e.target.value;
+        matchedListItem.id = keyGenerator(e.target.value);
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        this.setState({ lists });
+
+    }
+
+    toggleListItemNameHandler = () => {
+        this.setState({ listItemNameToggled: !this.state.listItemNameToggled });
+    }
     // list functions
 
     modifyListHandler = (e, listId) => {
@@ -246,7 +270,7 @@ class Board extends Component {
 
                 <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} addNewListInputHandler={this.addNewListInputHandler} addNewListHandler={this.addNewListHandler} ></TrelloModal>
 
-                <TrelloModal type="listItem" isOpen={this.state.listItemModalOpen} currentItem={this.state.currentItem} toggleModal={this.toggleModal} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler}></TrelloModal>
+                <TrelloModal type="listItem" isOpen={this.state.listItemModalOpen} currentItem={this.state.currentItem} toggleModal={this.toggleModal} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler} editListItemNameHandler={this.editListItemNameHandler} toggleListItemNameHandler={this.toggleListItemNameHandler} listItemNameToggled={this.state.listItemNameToggled}></TrelloModal>
 
                 <TrelloModal type="list" isOpen={this.state.listModalOpen} currentItem={this.state.currentItem} toggleModal={this.toggleModal} modifyListHandler={this.modifyListHandler} deleteListHandler={this.deleteListHandler} ></TrelloModal>
 
