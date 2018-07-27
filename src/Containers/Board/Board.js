@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Row, Button, } from 'reactstrap';
 import ListCard from '../../Components/ListCard/ListCard';
-import NewListCard from '../../Components/ListCard/NewListCard';
 import TrelloModal from '../../Components/TrelloModal/TrelloModal';
 
 import './Board.css';
@@ -25,25 +24,19 @@ class Board extends Component {
             addNewListModalOpen: false,
             addNewListInput: null,
 
-            listModalOpen: false,
-            listItemModalOpen: false,
-            addNewListItemHandler: null,
-            currentItem: null,
-
-
-
+            listModalOpen: false,       //modal used for editing the list modal
+            listItemModalOpen: false,   // modal used for editing a list item, which contains the description.
+            currentItem: null
         })
     }
 
     toggleModal = (type) => {
-
         if (type === "addNewList") {
             this.setState({ addNewListModalOpen: !this.state.addNewListModalOpen });
         }
         if (type === "listItem") {
             this.setState({ listItemModalOpen: !this.state.listItemModalOpen });
         }
-
     }
 
     addNewListInputHandler = (e) => {
@@ -52,7 +45,7 @@ class Board extends Component {
 
     addNewListHandler = () => {
         let lists = [...this.state.lists];
-        lists.push({ name: this.state.addNewListInput, listItems: [], id: keyGenerator(this.state.addNewListInput), listItemFormOn: false, newListItemInput: null });
+        lists.push({ name: this.state.addNewListInput, listItems: [], id: keyGenerator(this.state.addNewListInput), listItemFormOn: false, newListItemInput: null, });
 
         localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
 
@@ -66,86 +59,7 @@ class Board extends Component {
         }
     }
 
-
-    deleteListItemHandler = (currentItem, toggleModal) => {
-
-        // copy the current state of lists for immutability
-        let lists = [...this.state.lists];
-
-        // find the list which matches with the current Item
-        let modifyListIndex = this.state.lists.findIndex((element) => {
-
-            return element.id === currentItem.boardId;
-
-        });
-
-        // find the current entry which matches with the current Item
-        let modifyDescriptionIndex = lists[modifyListIndex].listItems.findIndex((element) => {
-            return element.id === currentItem.listItemId;
-        })
-
-
-        // remove it
-
-        lists[modifyListIndex].listItems.splice(modifyDescriptionIndex, 1);
-
-        this.setState({ lists });
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
-
-        toggleModal();
-    }
-
-    modifyListItemHandler = (e, currentItem) => {
-
-        let lists = [...this.state.lists];
-
-
-        // we can change to this to a function there are multiple calls of this.
-        // find the list which matches with the current Item
-        let modifyListIndex = this.state.lists.findIndex((element) => {
-
-            return element.id === currentItem.boardId;
-
-        });
-
-        // find the current entry which matches with the current Item
-        let modifyDescriptionIndex = lists[modifyListIndex].listItems.findIndex((element) => {
-            return element.id === currentItem.listItemId;
-        })
-
-
-        // change the description with what is currently in the textarea
-        lists[modifyListIndex].listItems[modifyDescriptionIndex].description = e.target.value;
-
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
-        this.setState({ lists });
-    }
-
-    addListItemHandler = (id, input, reset) => {
-        let lists = [...this.state.lists];
-        //add the new list item to the add list
-        let addListIndex = this.state.lists.findIndex((element) => {
-
-            return element.id === id;
-
-        });
-
-        //if not empty
-        if (input) {
-            lists[addListIndex].listItems.push({ name: input, description: '', id: `${input}${Date.now() * (Math.floor(Math.random() * 100))}` });
-            reset();
-        }
-        else {
-            alert('Please add an item');
-        }
-
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
-        this.setState({ lists });
-    }
-
-
-    /// new stuff
-
+    /// List Item stuff
 
     newListItemInputHandler = (e, listId) => {
 
@@ -167,7 +81,7 @@ class Board extends Component {
             return list.id === listId;
         })
 
-        matchedList.listItems.push({ name: matchedList.newListItemInput, id: keyGenerator(matchedList.newListItemInput) });
+        matchedList.listItems.push({ name: matchedList.newListItemInput, description: '', id: keyGenerator(matchedList.newListItemInput) });
         matchedList.listItemFormOn = false;
         this.setState({ lists });
         localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
@@ -182,10 +96,64 @@ class Board extends Component {
             return list.id === listId;
         })
 
-        matchedList.listItemFormOn = true;
+        matchedList.listItemFormOn = !matchedList.listItemFormOn; //invert the state
 
         this.setState({ lists });
         localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+
+    }
+
+    setCurrentItem = (listId, listItemId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        const matchedListItem = matchedList.listItems.find((item) => {
+            return item.id === listItemId;
+        })
+
+        this.setState({ currentItem: { listId: listId, listItem: matchedListItem } });
+
+    }
+
+    modifyListItemHandler = (e, listId, listItemId) => {
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        const matchedListItem = matchedList.listItems.find((item) => {
+            return item.id === listItemId;
+        })
+
+        matchedListItem.description = e.target.value;
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+    }
+
+
+    deleteListItemHandler = (listId, listItemId) => {
+
+
+        // copy the current state of lists for immutability
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        const matchedListItemIndex = matchedList.listItems.findIndex((item) => {
+            return item.id === listItemId;
+        })
+
+        matchedList.listItems.splice(matchedListItemIndex, 1);
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        this.toggleModal('listItem')
 
     }
 
@@ -193,11 +161,9 @@ class Board extends Component {
 
     render() {
 
-
-
         const lists = this.state.lists.map((list) => {
 
-            return <NewListCard
+            return <ListCard
                 name={list.name}
                 key={list.id}
                 id={list.id}
@@ -205,7 +171,13 @@ class Board extends Component {
                 listItemFormOn={list.listItemFormOn}
                 toggleListItemForm={this.toggleListItemForm}
                 newListItemInputHandler={this.newListItemInputHandler}
-                addNewListItemHandler={this.addNewListItemHandler} />
+                addNewListItemHandler={this.addNewListItemHandler}
+                modifyListItemHandler={this.modifyListItemHandler}
+                setCurrentItem={this.setCurrentItem}
+                toggleListItemModal={this.toggleModal}
+            />
+
+
         })
 
 
@@ -231,8 +203,7 @@ class Board extends Component {
 
                 <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} addNewListInputHandler={this.addNewListInputHandler} addNewListHandler={this.addNewListHandler} ></TrelloModal>
 
-                <Button onClick={() => { this.setState({ listItemModalOpen: !this.state.listItemModalOpen }) }}>test list item modal</Button>
-                <TrelloModal type="listItem" isOpen={this.state.listItemModalOpen}></TrelloModal>
+                <TrelloModal type="listItem" isOpen={this.state.listItemModalOpen} currentItem={this.state.currentItem} toggleModal={this.toggleModal} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler}></TrelloModal>
 
 
             </div>

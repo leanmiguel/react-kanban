@@ -4,16 +4,22 @@ import { Button, Input, Modal, ModalHeader, ModalBody, ModalFooter } from 'react
 const TrelloModal = (props) => {
 
     if (props.type === 'listItem') {
+
+        let currentItem = { boardId: '', listItem: { name: "", description: "", id: "" } };
+        if (props.currentItem) {
+            currentItem = props.currentItem;
+        }
+
         return (
 
-            <Modal isOpen={props.isOpen} toggle={() => { props.toggleModal() }}>
-                <ModalHeader style={{ fontWeight: 'bold' }} toggle={() => { props.toggleModal() }}>{(props.item ? props.item.name : null)}</ModalHeader>
+            <Modal isOpen={props.isOpen} toggle={() => { props.toggleModal(props.type) }}>
+                <ModalHeader style={{ fontWeight: 'bold' }} toggle={() => { props.toggleModal(props.type) }}>{currentItem.listItem.name}</ModalHeader>
                 <ModalBody>
                     <h2>Description</h2>
-                    <Input placeholder='Input Description' type="textarea" value={props.currentDescription} onChange={(e) => { props.modifyListItemHandler(e, props.item) }}></Input>   {/* Instead of onChange = props.modifyListItemHandler, you can write it like this to pass in extra parameters! */}
+                    <Input placeholder='Input Description' type="textarea" value={currentItem.listItem.description} onChange={(e) => { props.modifyListItemHandler(e, currentItem.listId, currentItem.listItem.id) }}></Input>   {/* Instead of onChange = props.modifyListItemHandler, you can write it like this to pass in extra parameters! */}
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="danger" onClick={() => { props.deleteListItemHandler(props.item, props.toggleModal) }}>Delete</Button>
+                    <Button color="danger" onClick={() => { props.deleteListItemHandler(currentItem.listId, currentItem.listItem.id) }}>Delete</Button>
                 </ModalFooter>
             </Modal >
 
