@@ -27,7 +27,7 @@ const ListCard = (props) => {
             style={{ marginTop: '5px' }}
             onClick={() => {
                 props.setCurrentItem(props.id, item.id);
-                props.toggleListItemModal("listItem");
+                props.toggleListItemModal('listItem');
             }}>
             {item.name}
         </Button>
@@ -42,7 +42,10 @@ const ListCard = (props) => {
                     <CardTitle className="text-center">
                         <a
                             href="# "
-
+                            onClick={() => {
+                                props.setCurrentItem(props.id);
+                                props.toggleListItemModal('list');
+                            }}
                             style={{ color: 'rgb(25,25,25)', fontWeight: 'bold', fontSize: '25px', paddingBottom: '-5px', wordWrap: 'break-word' }}>
                             {props.name}
                         </a>

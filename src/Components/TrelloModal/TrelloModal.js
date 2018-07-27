@@ -6,10 +6,9 @@ const TrelloModal = (props) => {
     if (props.type === 'listItem') {
 
         let currentItem = { boardId: '', listItem: { name: "", description: "", id: "" } };
-        if (props.currentItem) {
+        if (props.currentItem && props.currentItem.listItem) {
             currentItem = props.currentItem;
         }
-
         return (
 
             <Modal isOpen={props.isOpen} toggle={() => { props.toggleModal(props.type) }}>
@@ -22,11 +21,35 @@ const TrelloModal = (props) => {
                     <Button color="danger" onClick={() => { props.deleteListItemHandler(currentItem.listId, currentItem.listItem.id) }}>Delete</Button>
                 </ModalFooter>
             </Modal >
+        )
+    }
 
+    else if (props.type === 'list') {
+
+        let currentItem = { name: "", id: "" };
+        if (props.currentItem) {
+            currentItem = props.currentItem;
+        }
+
+
+        return (
+            <Modal isOpen={props.isOpen} toggle={() => { props.toggleModal(props.type) }}>
+                <ModalHeader toggle={() => { props.toggleModal(props.type) }}>Edit List</ModalHeader>
+                <ModalBody>
+                    <h2>List Name</h2>
+                    <Input placeholder='List Name' value={currentItem.name} onChange={(e) => { props.modifyListHandler(e, currentItem.id) }} />
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => { props.toggleModal(props.type) }}>Return</Button>{' '}
+                    <Button color="danger" onClick={() => { props.deleteListHandler(currentItem.id) }}>Delete</Button>
+                </ModalFooter>
+            </Modal>
         )
     }
 
     else if (props.type === 'addNewList') {
+
+
         return (
             <Modal isOpen={props.isOpen} toggle={() => { props.toggleModal(props.type) }}>
                 <ModalHeader toggle={() => { props.toggleModal(props.type) }}>New List</ModalHeader>
@@ -42,7 +65,6 @@ const TrelloModal = (props) => {
     }
 
     else if (props.type === 'addNewBoard') {
-
         return (
             <Modal isOpen={props.isOpen} toggle={() => { props.toggleModal(props.type) }}>
                 <ModalHeader toggle={() => { props.toggleModal(props.type) }}>New Board</ModalHeader>
@@ -71,9 +93,7 @@ const TrelloModal = (props) => {
                     <Button color="danger" onClick={() => { props.deleteBoardHandler() }}>Delete</Button>
                 </ModalFooter>
             </Modal>
-
         )
-
     }
 
 }

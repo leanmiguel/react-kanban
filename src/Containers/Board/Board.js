@@ -37,6 +37,9 @@ class Board extends Component {
         if (type === "listItem") {
             this.setState({ listItemModalOpen: !this.state.listItemModalOpen });
         }
+        if (type === "list") {
+            this.setState({ listModalOpen: !this.state.listModalOpen });
+        }
     }
 
     addNewListInputHandler = (e) => {
@@ -105,17 +108,24 @@ class Board extends Component {
 
     setCurrentItem = (listId, listItemId) => {
 
+
         let lists = [...this.state.lists];
 
         const matchedList = lists.find((list) => {
             return list.id === listId;
         })
 
-        const matchedListItem = matchedList.listItems.find((item) => {
-            return item.id === listItemId;
-        })
 
-        this.setState({ currentItem: { listId: listId, listItem: matchedListItem } });
+        if (listItemId !== undefined) {
+            const matchedListItem = matchedList.listItems.find((item) => {
+                return item.id === listItemId;
+            })
+            this.setState({ currentItem: { listId: listId, listItem: matchedListItem } });
+        }
+
+        else {
+            this.setState({ currentItem: matchedList });
+        }
 
     }
 
@@ -157,7 +167,40 @@ class Board extends Component {
 
     }
 
+    // list functions
 
+    modifyListHandler = (e, listId) => {
+
+
+        // copy the current state of lists for immutability
+        let lists = [...this.state.lists];
+
+        const matchedList = lists.find((list) => {
+            return list.id === listId;
+        })
+
+        matchedList.name = e.target.value;
+        matchedList.id = keyGenerator(e.target.value);
+
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+
+    }
+
+    deleteListHandler = (listId) => {
+
+        let lists = [...this.state.lists];
+
+        const matchedListIndex = lists.findIndex((list) => {
+            return list.id === listId;
+        })
+
+        lists.splice(matchedListIndex, 1);
+
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        this.toggleModal('list')
+    }
 
     render() {
 
@@ -204,6 +247,8 @@ class Board extends Component {
                 <TrelloModal type="addNewList" isOpen={this.state.addNewListModalOpen} toggleModal={this.toggleModal} addNewListInputHandler={this.addNewListInputHandler} addNewListHandler={this.addNewListHandler} ></TrelloModal>
 
                 <TrelloModal type="listItem" isOpen={this.state.listItemModalOpen} currentItem={this.state.currentItem} toggleModal={this.toggleModal} modifyListItemHandler={this.modifyListItemHandler} deleteListItemHandler={this.deleteListItemHandler}></TrelloModal>
+
+                <TrelloModal type="list" isOpen={this.state.listModalOpen} currentItem={this.state.currentItem} toggleModal={this.toggleModal} modifyListHandler={this.modifyListHandler} deleteListHandler={this.deleteListHandler} ></TrelloModal>
 
 
             </div>
