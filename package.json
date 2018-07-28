@@ -9,6 +9,7 @@
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.4",
+    "react-smooth-dnd": "^0.4.9",
     "reactstrap": "^6.3.0"
   },
   "scripts": {
