@@ -4,6 +4,9 @@ import ListCard from '../../Components/ListCard/ListCard';
 import TrelloModal from '../../Components/TrelloModal/TrelloModal';
 
 import './Board.css';
+
+
+
 class Board extends Component {
 
 
@@ -226,6 +229,30 @@ class Board extends Component {
         this.toggleModal('list')
     }
 
+    applyDrag = (arr, dragResult, listId) => {
+        const { removedIndex, addedIndex, payload } = dragResult;
+
+        let lists = [...this.state.lists];
+
+        let currentList = lists.find((element) => {
+            return element.id === listId;
+        })
+
+        if (removedIndex === null && addedIndex === null) return;
+
+        if (removedIndex !== null) {
+
+            currentList.listItems.splice(removedIndex, 1);
+        }
+
+        if (addedIndex !== null) {
+            currentList.listItems.splice(addedIndex, 0, payload);
+        }
+
+        this.setState({ lists });
+        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+    }
+
     render() {
 
         const lists = this.state.lists.map((list) => {
@@ -242,6 +269,7 @@ class Board extends Component {
                 modifyListItemHandler={this.modifyListItemHandler}
                 setCurrentItem={this.setCurrentItem}
                 toggleListItemModal={this.toggleModal}
+                applyDrag={this.applyDrag}
             />
 
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import Board from '../../Containers/Board/Board';
 import Boards from '../../Containers/Boards/Boards';
+
 const router = () => (
 
     <BrowserRouter>
