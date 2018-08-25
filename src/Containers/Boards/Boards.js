@@ -99,7 +99,7 @@ class Boards extends React.Component {
 
             <React.Fragment>
 
-                <h2 style={{ marginLeft: '5px' }}>Trello Clone</h2>
+                <h2 style={{ marginLeft: '5px' }}>React Kanban</h2>
 
                 {boards}
 
