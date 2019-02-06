@@ -57,9 +57,14 @@ class Boards extends React.Component {
     editBoardNameHandler = (e) => {
         const boards = [...this.state.boards];
         const { currentBoardIndex, currentBoardStorage, currentBoardId } = getCurrentBoardInformation(this.state.boards, this.state.currentBoard);
-        editBoard(boards[currentBoardIndex], e.target.value);       //modify the current board with the input from the modal
-        this.setState({ boards, currentBoard: { name: boards[currentBoardIndex].name, id: boards[currentBoardIndex].id } });
-        saveLocalStorage(boards, undefined, currentBoardId, boards[currentBoardIndex].id, currentBoardStorage);
+        if (e.target.value === ""){
+            window.alert("Please enter a name for the board")
+        }
+        else{
+            editBoard(boards[currentBoardIndex], e.target.value);       //modify the current board with the input from the modal
+            this.setState({ boards, currentBoard: { name: boards[currentBoardIndex].name, id: boards[currentBoardIndex].id } });
+            saveLocalStorage(boards, undefined, currentBoardId, boards[currentBoardIndex].id, currentBoardStorage);
+        }
     }
 
     deleteBoardHandler = () => {

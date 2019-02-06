@@ -184,10 +184,15 @@ class Board extends Component {
             return item.id === listItemId;
         })
 
-        matchedListItem.name = e.target.value;
-        matchedListItem.id = keyGenerator(e.target.value);
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
-        this.setState({ lists });
+        if (e.target.value === ""){
+            window.alert("Please put in a name")
+        }
+        else{
+            matchedListItem.name = e.target.value;
+            matchedListItem.id = keyGenerator(e.target.value);
+            localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+            this.setState({ lists });
+        }
 
     }
 
@@ -206,11 +211,16 @@ class Board extends Component {
             return list.id === listId;
         })
 
-        matchedList.name = e.target.value;
-        matchedList.id = keyGenerator(e.target.value);
-
-        this.setState({ lists });
-        localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        if(e.target.value === ""){
+            window.alert("Please enter a name for the board")
+        }
+        else{
+            matchedList.name = e.target.value;
+            matchedList.id = keyGenerator(e.target.value);
+    
+            this.setState({ lists });
+            localStorage.setItem(this.props.match.params.boardId, JSON.stringify(lists));
+        }
 
     }
 
